@@ -15,8 +15,6 @@ import android.app.Activity;
 import android.content.Context;
 import android.database.DataSetObserver;
 import android.graphics.Bitmap;
-import android.graphics.Bitmap.CompressFormat;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -37,6 +35,9 @@ import android.widget.ListView;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.ImageLoader;
 import com.android.volley.toolbox.Volley;
+import com.androidquery.AQuery;
+import com.androidquery.callback.AjaxStatus;
+import com.androidquery.callback.BitmapAjaxCallback;
 import com.koushikdutta.async.AsyncServer;
 import com.koushikdutta.async.http.AsyncHttpClient;
 import com.koushikdutta.async.http.AsyncHttpGet;
@@ -202,12 +203,21 @@ public class UrlImageViewHelperSample extends Activity {
                 return true;
             }
         });
-        
+        MenuItem aquery = menu.add("AQuery");
+        aquery.setOnMenuItemClickListener(new OnMenuItemClickListener() {
+            @Override
+            public boolean onMenuItemClick(MenuItem item) {
+            	UrlImageViewHelper.getDownloaders().remove(downloader);
+            	loader = UrlImageViewHelperSample.this.aquery;
+                return true;
+            }
+        });
         MenuItem clear = menu.add("clear caches");
         clear.setOnMenuItemClickListener(new OnMenuItemClickListener() {
 			@Override
 			public boolean onMenuItemClick(MenuItem item) {
 				mAdapter.clear();
+				UrlImageViewHelperSample.this.aquery.clear();
 				UrlImageViewHelperSample.this.universal.clear();
 				UrlImageViewHelperSample.this.picasso.clear();
 				UrlImageViewHelperSample.this.koush.clear();
@@ -216,6 +226,7 @@ public class UrlImageViewHelperSample extends Activity {
 				deleteDirectory(new File(getCacheDir(), "volley"));
 				deleteDirectory(new File(getCacheDir(), "sample"));
 				deleteDirectory(new File(getCacheDir(), "picasso-cache"));
+				deleteDirectory(new File(getCacheDir(), "aquery"));
 				return true;
 			}
 		});
@@ -299,6 +310,31 @@ public class UrlImageViewHelperSample extends Activity {
 		public void clear() {
 			com.nostra13.universalimageloader.core.ImageLoader.getInstance().clearDiscCache();
 			com.nostra13.universalimageloader.core.ImageLoader.getInstance().clearMemoryCache();
+		}
+	};
+	
+	AbstractImageLoader aquery = new AbstractImageLoader() {
+		@Override
+		public void load(String url, ImageView iv) {
+			BitmapAjaxCallback cb =  new BitmapAjaxCallback() {
+				@Override
+				protected void callback(String url, ImageView iv, Bitmap bm,
+						AjaxStatus status) {
+					updateTime();
+					super.callback(url, iv, bm, status);
+				}
+				@Override
+				public Bitmap getResult() {
+					return super.getResult();
+				}
+			};
+			cb.url(url);
+			new AQuery(iv).image(cb);
+		}
+		
+		@Override
+		public void clear() {
+			BitmapAjaxCallback.clearCache();
 		}
 	};
 	

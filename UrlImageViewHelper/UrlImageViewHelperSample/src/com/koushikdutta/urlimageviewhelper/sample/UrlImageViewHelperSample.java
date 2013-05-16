@@ -8,19 +8,13 @@ import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Hashtable;
-
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.json.JSONArray;
-import org.json.JSONObject;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import android.app.Activity;
 import android.content.Context;
 import android.database.DataSetObserver;
 import android.graphics.Bitmap;
-import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -30,16 +24,13 @@ import android.view.MenuItem.OnMenuItemClickListener;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
-import android.view.inputmethod.InputMethodManager;
 import android.widget.Adapter;
 import android.widget.ArrayAdapter;
 import android.widget.BaseAdapter;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
-import android.widget.Toast;
 
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.ImageLoader;
@@ -363,6 +354,8 @@ public class UrlImageViewHelperSample extends Activity {
 
         final AsyncHttpClient client = new AsyncHttpClient(new AsyncServer());
         final Handler handler = new Handler();
+        // match picasso's thread pool size.
+        final ExecutorService exec = Executors.newFixedThreadPool(3);
         UrlImageViewHelper.getDownloaders().add(0, downloader = new UrlDownloader() {
             final UrlDownloader self = this;
             @Override
@@ -374,13 +367,13 @@ public class UrlImageViewHelperSample extends Activity {
                     public void onCompleted(Exception e, AsyncHttpResponse source, File result) {
                         assert(Looper.myLooper() == null);
                         if (e == null) {
-                        	new Thread() {
+                        	exec.execute(new Runnable() {
                         		@Override
                         		public void run() {
                                     callback.onDownloadComplete(self, null, filename);
                                     handler.post(completion);
                         		}
-                        	}.start();
+                        	});
                         	return;
                         }
                         handler.post(completion);

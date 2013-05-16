@@ -1,14 +1,15 @@
 package com.koushikdutta.async.http;
 
+import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
-import java.util.concurrent.CancellationException;
 import java.util.concurrent.TimeoutException;
 
 import junit.framework.Assert;
@@ -393,9 +394,9 @@ public class AsyncHttpClient {
         };
         ret.setParent(cancel);
         file.getParentFile().mkdirs();
-        final FileOutputStream fout;
+        final OutputStream fout;
         try {
-            fout = new FileOutputStream(file);
+            fout = new BufferedOutputStream(new FileOutputStream(file), 8192);
         }
         catch (FileNotFoundException e) {
             if (ret.setComplete(e))

@@ -1,5 +1,6 @@
 package com.koushikdutta.urlimageviewhelper;
 
+import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -25,7 +26,6 @@ import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
 import android.os.Build;
-import android.os.DeadObjectException;
 import android.os.Looper;
 import android.util.DisplayMetrics;
 import android.util.Log;
@@ -96,14 +96,14 @@ public final class UrlImageViewHelper {
 
 //        Log.v(Constants.LOGTAG,targetWidth);
 //        Log.v(Constants.LOGTAG,targetHeight);
-        FileInputStream stream = null;
+        InputStream stream = null;
         clog("Decoding: " + url + " " + filename);
         try {
             BitmapFactory.Options o = null;
             if (mUseBitmapScaling) {
                 o = new BitmapFactory.Options();
                 o.inJustDecodeBounds = true;
-                stream = new FileInputStream(filename);
+                stream = new BufferedInputStream(new FileInputStream(filename));
                 BitmapFactory.decodeStream(stream, null, o);
                 stream.close();
                 int scale = 0;
@@ -113,7 +113,7 @@ public final class UrlImageViewHelper {
                 o = new Options();
                 o.inSampleSize = 1 << scale;
             }
-            stream = new FileInputStream(filename);
+            stream = new BufferedInputStream(new FileInputStream(filename), 8192);
             final Bitmap bitmap = BitmapFactory.decodeStream(stream, null, o);
             clog(String.format("Loaded bitmap (%dx%d).", bitmap.getWidth(), bitmap.getHeight()));
             return bitmap;

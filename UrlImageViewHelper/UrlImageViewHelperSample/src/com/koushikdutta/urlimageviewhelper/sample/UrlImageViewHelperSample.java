@@ -15,6 +15,8 @@ import android.app.Activity;
 import android.content.Context;
 import android.database.DataSetObserver;
 import android.graphics.Bitmap;
+import android.graphics.Bitmap.CompressFormat;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -43,6 +45,9 @@ import com.koushikdutta.async.http.ResponseCacheMiddleware;
 import com.koushikdutta.urlimageviewhelper.UrlDownloader;
 import com.koushikdutta.urlimageviewhelper.UrlImageViewCallback;
 import com.koushikdutta.urlimageviewhelper.UrlImageViewHelper;
+import com.nostra13.universalimageloader.core.ImageLoaderConfiguration;
+import com.nostra13.universalimageloader.core.assist.FailReason;
+import com.nostra13.universalimageloader.core.assist.ImageLoadingListener;
 import com.squareup.picasso.LruCache;
 import com.squareup.picasso.Picasso;
 import com.squareup.picasso.Transformation;
@@ -189,12 +194,21 @@ public class UrlImageViewHelperSample extends Activity {
                 return true;
             }
         });
+        MenuItem universal = menu.add("Universal");
+        universal.setOnMenuItemClickListener(new OnMenuItemClickListener() {
+            @Override
+            public boolean onMenuItemClick(MenuItem item) {
+            	loader = UrlImageViewHelperSample.this.universal;
+                return true;
+            }
+        });
         
         MenuItem clear = menu.add("clear caches");
         clear.setOnMenuItemClickListener(new OnMenuItemClickListener() {
 			@Override
 			public boolean onMenuItemClick(MenuItem item) {
 				mAdapter.clear();
+				UrlImageViewHelperSample.this.universal.clear();
 				UrlImageViewHelperSample.this.picasso.clear();
 				UrlImageViewHelperSample.this.koush.clear();
 				UrlImageViewHelperSample.this.volley.clear();
@@ -244,6 +258,47 @@ public class UrlImageViewHelperSample extends Activity {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
+		}
+	};
+	
+	AbstractImageLoader universal = new AbstractImageLoader() {
+		@Override
+		public void load(String url, ImageView iv) {
+			com.nostra13.universalimageloader.core.ImageLoader.getInstance().displayImage(url, iv,  new ImageLoadingListener() {
+
+				@Override
+				public void onLoadingCancelled(String arg0, View arg1) {
+					// TODO Auto-generated method stub
+					
+				}
+
+				@Override
+				public void onLoadingComplete(String arg0, View arg1,
+						Bitmap arg2) {
+					updateTime();
+					
+				}
+
+				@Override
+				public void onLoadingFailed(String arg0, View arg1,
+						FailReason arg2) {
+					updateTime();
+					
+				}
+
+				@Override
+				public void onLoadingStarted(String arg0, View arg1) {
+					// TODO Auto-generated method stub
+					
+				}
+				
+			});
+		}
+		
+		@Override
+		public void clear() {
+			com.nostra13.universalimageloader.core.ImageLoader.getInstance().clearDiscCache();
+			com.nostra13.universalimageloader.core.ImageLoader.getInstance().clearMemoryCache();
 		}
 	};
 	
@@ -309,6 +364,8 @@ public class UrlImageViewHelperSample extends Activity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        
+        com.nostra13.universalimageloader.core.ImageLoader.getInstance().init(ImageLoaderConfiguration.createDefault(this));
 
         volley = new AbstractImageLoader() {
             Hashtable<String, Bitmap> hash = new Hashtable<String, Bitmap>();

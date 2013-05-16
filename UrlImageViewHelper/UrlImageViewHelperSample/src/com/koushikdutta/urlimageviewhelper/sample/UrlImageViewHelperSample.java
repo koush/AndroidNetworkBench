@@ -352,6 +352,8 @@ public class UrlImageViewHelperSample extends Activity {
     		}
     	};
 
+    	// UrlImageViewHelper doesn't use AndroidAsync out of the box. It uses HttpUrlConnection.
+    	// Plug in a downloader to use AndroidAsync.
         final AsyncHttpClient client = new AsyncHttpClient(new AsyncServer());
         final Handler handler = new Handler();
         // match picasso's thread pool size.
